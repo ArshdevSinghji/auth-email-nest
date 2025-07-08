@@ -7,12 +7,15 @@ import { useRouter } from "next/navigation";
 import { useAppDispatch } from "../redux/hooks";
 import { setUser } from "../redux/slice/user.slice";
 import { setVerify } from "../redux/slice/verify.slice";
+import { useForm } from "react-hook-form";
+import { SignInSchema, TSignInSchema } from "../utils/formValidation";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function SignIn() {
   const route = useRouter();
   const dispatch = useAppDispatch();
 
-  async function handleSubmit(formData: FormData) {
+  async function onSubmit(formData: FormData) {
     const email = formData.get("email");
     const password = formData.get("password");
 
@@ -63,6 +66,14 @@ export default function SignIn() {
     }
   }
 
+  const {
+    register,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+  } = useForm<TSignInSchema>({
+    resolver: zodResolver(SignInSchema),
+  });
+
   return (
     <Paper
       variant="outlined"
@@ -77,7 +88,8 @@ export default function SignIn() {
     >
       <Stack
         component={"form"}
-        action={handleSubmit}
+        // action={handleSubmit}
+        onSubmit={handleSubmit(() => onSubmit)}
         alignItems={"center"}
         gap={2}
         noValidate
@@ -86,21 +98,32 @@ export default function SignIn() {
 
         <TextField
           required
+          {...register("email")}
           name="email"
           label="email"
           type="email"
           size="small"
+          error={!!errors.email}
+          helperText={errors?.email?.message}
         />
 
         <TextField
           required
+          {...register("password")}
           name="password"
           label="password"
           type="password"
           size="small"
+          error={!!errors.password}
+          helperText={errors?.password?.message}
         />
 
-        <Button type="submit" variant="outlined" size="small">
+        <Button
+          disabled={isSubmitting}
+          type="submit"
+          variant="outlined"
+          size="small"
+        >
           sign in
         </Button>
 

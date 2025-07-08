@@ -1,14 +1,17 @@
 "use client";
 
 import { fetchRegisterCred } from "@/app/utils/auth";
+import { SignUpSchema, TSignUpSchema } from "@/app/utils/formValidation";
 import { Button, Paper, Stack, TextField, Typography } from "@mui/material";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function SignUp() {
   const router = useRouter();
 
-  async function handleSubmit(formData: FormData) {
+  async function onSubmit(formData: FormData) {
     const username = formData.get("username");
     const email = formData.get("email");
     const password = formData.get("password");
@@ -40,6 +43,14 @@ export default function SignUp() {
     }
   }
 
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting, errors },
+  } = useForm<TSignUpSchema>({
+    resolver: zodResolver(SignUpSchema),
+  });
+
   return (
     <Paper
       variant="outlined"
@@ -54,7 +65,8 @@ export default function SignUp() {
     >
       <Stack
         component={"form"}
-        action={handleSubmit}
+        // action={handleSubmit}
+        onSubmit={handleSubmit(() => onSubmit)}
         alignItems={"center"}
         gap={2}
         noValidate
@@ -63,6 +75,9 @@ export default function SignUp() {
 
         <TextField
           required
+          {...register("username")}
+          error={!!errors.username}
+          helperText={errors?.username?.message}
           id="outlined"
           name="username"
           label="username"
@@ -71,6 +86,9 @@ export default function SignUp() {
         />
         <TextField
           required
+          {...register("email")}
+          error={!!errors.email}
+          helperText={errors?.email?.message}
           name="email"
           label="email"
           type="email"
@@ -79,13 +97,21 @@ export default function SignUp() {
 
         <TextField
           required
+          {...register("password")}
+          error={!!errors.password}
+          helperText={errors?.password?.message}
           name="password"
           label="password"
           type="password"
           size="small"
         />
 
-        <Button type="submit" variant="outlined" size="small">
+        <Button
+          type="submit"
+          variant="outlined"
+          size="small"
+          disabled={isSubmitting}
+        >
           sign up
         </Button>
 
