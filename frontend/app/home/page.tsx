@@ -15,7 +15,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
 import {
   fetchVerificationCode,
@@ -24,6 +24,7 @@ import {
   updateVerify,
 } from "../utils/auth";
 import { setVerify } from "../redux/slice/verify.slice";
+import { setUser } from "../redux/slice/user.slice";
 
 const Home = () => {
   const user = useAppSelector((state) => state.user);
@@ -91,13 +92,11 @@ const Home = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("image/")) {
         setUploadError("Please select a valid image file");
         return;
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setUploadError("File size must be less than 5MB");
         return;
@@ -116,7 +115,6 @@ const Home = () => {
 
     setIsUploading(true);
 
-    // Create FormData for multipart upload
     const uploadFormData = new FormData();
     uploadFormData.append("file", selectedFile);
     uploadFormData.append(
@@ -142,11 +140,20 @@ const Home = () => {
       }
 
       const data = await response.json();
-      console.log("Uploaded image URL:", data.secure_url);
+
+      dispatch(
+        setUser({
+          username: user.username,
+          email: user.email,
+          imageUrl: data.secure_url,
+        })
+      );
+      console.log("dispatching...");
 
       await updateUserProfileImage(user.email, data.secure_url);
 
       alert("Image uploaded successfully!");
+
       setImage(false);
       setSelectedFile(null);
     } catch (error) {
